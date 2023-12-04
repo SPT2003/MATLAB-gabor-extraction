@@ -50,47 +50,69 @@ imshow(resizedImage, 'InitialMagnification', 'fit',"Colormap",gray);
 title('Resized Image');
 
 
-
+%%
 %optimisation of mathematical model. 
 
-%model = @(l,t,s) sum(gE.*gb(12,l,t,s),"all"); ignore this line for now. 
+% model = @(l,t,s) corr2(gE,gb(12,l,t,s));
+% 
+% %100 values for the different parameters of the gabor, I did not use a
+% %variable for image size as that is assumed to be constant. 
+% lambda = linspace(0,12,100);
+% theta = linspace(0,360,100);
+% sigma = linspace(0,4,100);
+% 
+% %possible values = rows = 100^3
+% result_matrix = zeros(100^3,4);
+% 
+% %row indexing starting with 1. 
+% in = 1;
+% for l = lambda
+%     for t = theta
+%         for s = sigma
+%             result_matrix(in,1) = l;
+%             result_matrix(in,2) = t;
+%             result_matrix(in,3) = s;
+%             %correlation between the resulting averaged image and the
+%             %tested gabor. 
+%             result_matrix(in,4) = corr2(gE,gb(12,l,t,s));
+% 
+%             in = in + 1;
+%         end
+%     end
+% end
+% 
+% %finding the gabor that gave the best result. 
+% [M,I] = max(result_matrix(:,4));
+% 
+% 
+% %printing out the results. 
+% result_matrix(I,1)
+% result_matrix(I,2)
+% result_matrix(I,3)
+% result_matrix(I,4)
 
-%100 values for the different parameters of the gabor, I did not use a
-%variable for image size as that is assumed to be constant. 
-lambda = linspace(0,12,100);
-theta = linspace(0,360,100);
-sigma = linspace(0,4,100);
 
-%possible values = rows = 100^3
-result_matrix = zeros(100^3,4);
+% Define the objective function
+objectiveFunction = @(params) 1-corr2(gE, gb(12, params(1), params(2), params(3)));
 
-%row indexing starting with 1. 
-in = 1;
-for l = lambda
-    for t = theta
-        for s = sigma
-            result_matrix(in,1) = l;
-            result_matrix(in,2) = t;
-            result_matrix(in,3) = s;
-            %correlation between the resulting averaged image and the
-            %tested gabor. 
-            result_matrix(in,4) = corr2(gE,gb(12,l,t,s));
-
-            in = in + 1;
-        end
-    end
-end
-
-%finding the gabor that gave the best result. 
-[M,I] = max(result_matrix(:,4));
+% Initial guess for Gabor parameters
+initialGuess = [3, 2, 3];
 
 
-%printing out the results. 
-result_matrix(I,1)
-result_matrix(I,2)
-result_matrix(I,3)
-result_matrix(I,4)
+% Run the optimization and visualise the process. 
+options = optimset('PlotFcns',@optimplotfval);
+optimizedParameters = fminsearch(objectiveFunction, initialGuess, options);
 
+% Display the optimized parameters
+disp('Optimized Parameters:');
+disp(['Lambda: ', num2str(optimizedParameters(1))]);
+disp(['Theta: ', num2str(optimizedParameters(2))]);
+disp(['Sigma: ', num2str(optimizedParameters(3))]);
 
+% Display the optimized Gabor filter
+optimizedGabor = gb(12, optimizedParameters(1), optimizedParameters(2), optimizedParameters(3));
+figure;
+imshow(optimizedGabor, 'InitialMagnification', 'fit', 'Colormap', gray);
+title('Optimized Gabor Filter');
 
 
